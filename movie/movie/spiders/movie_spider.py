@@ -14,7 +14,21 @@ class MovieSpider(Spider):
     start_urls = [
         "http://www.666hdhd.com/",
     ]
-    dir_path = "./"
+    dir_path = "./urls/"
+    file_name = ["记录.txt", "剧情.txt", "喜剧.txt", "科幻.txt", "战争.txt", "动作.txt", "爱情.txt", "恐怖.txt", "传记.txt", "动画.txt"]
+    movie_handle = {
+        u"记录" : dir_path + file_name[0],
+        u"纪录" : dir_path + file_name[0],
+        u"剧情" : dir_path + file_name[1],
+        u"喜剧" : dir_path + file_name[2],
+        u"科幻" : dir_path + file_name[3],
+        u"战争" : dir_path + file_name[4],
+        u"动作" : dir_path + file_name[5],
+        u"爱情" : dir_path + file_name[6],
+        u"恐怖" : dir_path + file_name[7],
+        u"传记" : dir_path + file_name[8],
+        u"动画" : dir_path + file_name[9],
+        }
 
 
     def parse_next(self, response):
@@ -40,11 +54,14 @@ class MovieSpider(Spider):
     def parse(self, response):
         if not os.path.exists(self.dir_path):
             os.makedirs(self.dir_path)
+        for file_name in self.file_name:
+            file_path = self.dir_path + file_name
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
         sel = Selector(response)
 
         urls = sel.xpath("//div/ul/li/a/@href").extract()
-        # names = sel.xpath("//div/ul/li/a/span/text()").extract()
 
         url_bs = []
         for url in urls:
@@ -57,7 +74,6 @@ class MovieSpider(Spider):
 
     def parse_movie(self, sel):
         urls = sel.xpath("//div/ul/li/a/@href").extract()
-        # names = sel.xpath("//div/ul/li/a/span/text()").extract()
         url_bs = []
         for url in urls:
             if len(url) < 5 or "help" in url:
@@ -83,18 +99,16 @@ class MovieSpider(Spider):
 
     def save_movie_list(self, urls, names):
         # 解决unicode字符串和str串拼接问题
-        file_path = self.dir_path + "list.txt"
         reload(sys)
         sys.setdefaultencoding("utf8")
-        fobj = open(file_path, "awb+")
+        # fobj = open(file_path, "awb+")
         for url in urls:
-            if "pan" in url:
-                continue
-            f_str = url + "\n\n"
-            fobj.write(f_str)
-        # for x, y in zip(urls, names):
-            # if "pan" in x or "ftp" in x:
-                # continue
-            # f_str = str(y) + "---------" + x.rstrip() + "\n"
-            # fobj.write(f_str)
-        fobj.close()
+            if "http" in url and "pan" not in url:
+                ul = url.split("/")
+                fobj = open(self.movie_handle[ul[3][0:2]], "awb+")
+                # if ul[3][0:2] not in self.movie_type:
+                    # self.movie_type.append(ul[3][0:2])
+                f_str = url + "\n"
+                fobj.write(f_str)
+                fobj.close()
+        # print self.movie_type
